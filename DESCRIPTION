@@ -1,0 +1,16 @@
+Package: mpirt
+Type: Package
+Title: Semi- and non-parametric item response theory
+Version: 0.1.0
+Author: Carl F. Falk
+Maintainer: Carl F. Falk <carl.falk@mcgill.ca>
+Description: A collection of wrappers and utility functions for semi-
+  and non-parametric item response theory models, especially those based on monotonic polynomials.
+License: GPL-3 + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Depends:
+  OpenMx,
+  rpf,
+  ifaTools
+RoxygenNote: 7.1.0
