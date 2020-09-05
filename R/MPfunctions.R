@@ -14,52 +14,67 @@
 ##
 ###########################################################################################
 
-#' Wrapper for fitting MP models with OpenMx.
+#' Wrapper for fitting monotonic polynomial (MP) models with OpenMx.
 #'
-#' @param dat - the data
-#' @param k - the order of the polynomial
-#' @param fit - actually fit the model or just return all of the matrices?
-#' @param itemtype - character vector of same length as number of items that may allow different types of item on a single test. Right now I only support:
-#'   1. Logistic function of monotonic polynomial ("lmp", dichotomous items)
-#'   2. Monotonic Polynomial Graded Response Model ("grmp", GRMP - about to be under review; still in a forked, not publicly available version of rpf)
-#'   3. Monotonic Polynomial Generalized Partial Credit Model ("gpcmp", GPCMP)
-#'   If an option is not specified, it tries to auto-detect dichotomous vs. polytomous items
-#' @param ncat - number of categories per item; if null, tries to auto-detect
-#' @param priors - logical value indicating whether to use prior distributions for alpha and tau
-#' @param randstart stuff
-#' @param startimat - custom starting values are possible, but currently I only support custom starting values based on an item parameter matrix in the format
+#' @param dat The data, typically in a format prepared by \code{\link[OpenMx]{mxFactor}}.
+#' @param k A vector of integers (greater than or equal to 0) that controls the order of the polynomial for each item. Polynomial order is equal to 2*k+1.
+#' @param fit Logical value. If true, actually fit the model. Otherwise, just return everything prepared for OpenMx (useful for inspecting set-up prior to running).
+#' @param itemtype Character vector of same length as number of items that may allow different types of item on a single test. These currently support the following
+#'   monotonic polynomial models from \code{\link[rpf]{rpf}}.
+#'   1. Logistic function of monotonic polynomial ("lmp"). Dichotomous items, no asymptote. Uses \code{\link[rpf]{rpf.lmp}}).
+#'   2. Monotonic Polynomial Graded Response Model ("grmp"). Based on graded response model. Uses \code{\link[rpf]{rpf.grmp}})
+#'   3. Monotonic Polynomial Generalized Partial Credit Model ("gpcmp"). Based on generalized partial credit model model. Uses \code{\link[rpf]{rpf.gpcmp}})
+#'   If an option is not specified, it tries to auto-detect dichotomous vs. polytomous items.
+#' @param ncat Number of categories per item; if NULL, tries to auto-detect.
+#' @param priors Logical value. If true, use prior distributions for alpha and tau parameters.
+#' @param randstart Logical value. If true, tries to use random starting values (experimental).
+#' @param startimat Accepts an item parameter matrix for custom starting values. Custom starting values are possible, but currently I only support custom starting values based on an item parameter matrix in the format
 #'   of OpenMx. This is useful if we have already fitted a model and wish to increase/decrease polynomial order for just an item or two.
 #'   We can use estimates from the initially fitted model for all other items, and any corresponding item parameters.
 #'   To see an example of what such a matrix looks like, fit a model with this function, then extract item paramter matrix to see its format.
-#' @param pvar - prior variance for alpha and tau parameters. Currently I just use this blunt approach of having the same prior variance for all alpha and tau,
-#'   regardless of what item.
-#' @param pvartau stuff
-#' @param pvaralpha stuff
-#' @param taumean - prior mean for tau parameters. -10 apparently works well in practice and I believe this is what Falk & Cai (2016, Psychometrika) used
-#' @param alphamean stuff
-#' @param qpoints - number of quadrature points - passed to mxExpectationBA81.
-#' @param qwidth - defines limits of quadrature grid. I think "5" here means -5 to 5. See mxExpectationBA81 documentation.
-#' @param se stuff
-#' @param infotype stuff
-#' @param semMethod stuff
-#' @param ... stuff
-#' @details Insert details here.  Setting up models in OpenMx is a bit of a pain
-#'  This attempts to make it easier, but then I have lots of things hard-coded, and only
-#'  have options that I've found to be useful in past research.
-#' @references
-#' Refs here
+#' @param pvar Single numeric value indicating prior variance for alpha and tau parameters. Uses normal prior. Used only if \code{pvartau} or \code{pvaralpha} are NULL.
+#' @param pvartau Single numeric value indicating prior variance for tau parameters. Uses normal prior.
+#' @param pvaralpha Single numeric value indicating prior variance for tau parameters. Uses normal prior.
+#' @param taumean Single numeric value indicating prior mean for tau parameters. -10 apparently works well in practice and I believe this is what Falk & Cai (2016, Psychometrika) used.
+#' @param alphamean Single numeric value indicating prior mean for alpha parameters. Defaults to 0.
+#' @param qpoints Integer indicating number of quadrature points - passed to \code{\link[OpenMx]{mxExpectationBA81}}.
+#' @param qwidth Defines limits of quadrature grid. I think "5" here means -5 to 5. See \code{\link[OpenMx]{mxExpectationBA81}} documentation.
+#' @param se Logical value. If TRUE, try to compute standard errors for item parameters.
+#' @param infotype String passed as \code{information} argument to \code{\link[OpenMx]{mxComputeEM}} to determine how to compute information matrix (for standard errors).
+#' @param semMethod If "mr1991" is chosen for \code{infotype}, then supplemented EM is used. This argument then takes a string that determines
+#'  which variant of S-EM is performed. e.g., "mr" = as applied by Cai (2008) to IFA models, "tian" = as specified by Tian, Cai, Thissen, & Xin (2013), "agile" = Joshua Pritikin's method for S-EM.
+#' @param ... Not used yet, but some arguments may later be passed directly to some OpenMx functions.
+#' @details Setting up monotonic polynomial models in OpenMx can be a bit of a pain. This wrapper function
+#'  attempts to make it easier. In a single line, it will set up and estimate a single group, unidimensional item response model with three choices
+#'  for item models. Note that the models for each item are extensions of the two-parameter logistic, generalized partial credit, and graded response models.
+#'  Setting \code{k} equal to 0 will essentially be equivalent to these simpler models, provided that all items are keyed the same direction (the GRMP can relax this assumption).
+#'
+#'  Inspiration for starting values is generally borrowed from the \code{MonoPoly} package and Elphinstone parameterization.
+#'  The estimation procedure is generally that used by Falk & Cai (2016) and Falk (2020) in that normal priors for alpha and tau parameters typically help to stabilize estimation.
+#'  Many estimation options are otherwise still hard-coded, but are those that we have found to be useful in past research.
+#'  Note finally that estimating models with \code{k} greater than zero is not recommended until a simpler model is fit, as immediately fitting high order polynomial models without good starting values may lead to estimation difficulty.
+#'
+#'  Attempts at further generalization of this code are welcome.
+#' @references Falk, C. F., & Cai, L. (2016). Maximum marginal likelihood
+#' estimation of a monotonic polynomial generalized partial credit model with
+#' applications to multiple group analysis. \emph{Psychometrika, 81}, 434-460.
+#' \url{http://dx.doi.org/10.1007/s11336-014-9428-7}
+#'
+#' Falk, C. F. (2020). The monotonic polynomial
+#' graded response model: Implementation and a comparative study. \emph{Applied Psychological
+#' Measurement, 44}, 465-481. \url{https://doi.org/10.1177/0146621620909897}
 #' @examples
 #' \donttest{
-#' # do examples here
+#' # TODO examples here
 #' }
-#' @return Describe what it returns.
+#' @return Returns an object of class \code{\link[OpenMx]{MxModel-class}}. Convenience functions for extracting more from this object are available.
 #' @seealso Anything else?
 #' @export
 #' @importFrom rpf rpf.lmp rpf.grmp rpf.gpcmp rpf.rparam
 #' @importFrom ifaTools univariatePrior
 #' @import OpenMx
 #' @importFrom stats rnorm
-fitMonoPolyModel<-function(dat,k=rep(0,ncol(dat)),fit=TRUE,itemtype=NULL,ncat=NULL,
+fitMP<-function(dat,k=rep(0,ncol(dat)),fit=TRUE,itemtype=NULL,ncat=NULL,
                            priors=FALSE,randstart=FALSE, startimat=NULL,
                            pvar=500,pvartau=NULL,pvaralpha=NULL,taumean=-10,alphamean=0,
                            qpoints=101,qwidth=5,
@@ -228,7 +243,7 @@ fitMonoPolyModel<-function(dat,k=rep(0,ncol(dat)),fit=TRUE,itemtype=NULL,ncat=NU
   #In combo with "mr1991", a particular method for S-EM may be specified using semMethod
   #"mr" = as applied by Cai (2008) to IFA models
   #"tian" = as specified by Tian, Cai, Thissen, & Xin (2013)
-  #"agile" = your method for S-EM
+  #"agile" = Joshua's method for S-EM
 
 
   # If the largets k is greater than 0, set up (optional) priors and then set up the mxModel

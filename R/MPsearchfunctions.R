@@ -57,7 +57,7 @@ compute.neighbor<-function(x,items=1,step=NULL){
 # aic - logical value whether to compute AIC (TRUE) or BIC (FALSE)
 # itemtype - character vector indicating the type of items
 # priors - logical value whether prior distributions are used on alpha and tau
-# startimat - starting item parameter matrix (more lengthly description given above for fitMonoPolyModel)
+# startimat - starting item parameter matrix (more lengthly description given above for fitMP)
 # pvar - prior variance for alpha and tau
 # taumean - prior mean for tau
 # qpoints - number of quadrature points
@@ -77,7 +77,7 @@ energy<-function(dat,k.mat, type="aic", itemtype=NULL, priors=TRUE,startimat=NUL
   } else {
     se<-FALSE
   }
-  fitmodel<-fitMonoPolyModel(dat,k=k,fit=TRUE,itemtype=itemtype,priors=priors,
+  fitmodel<-fitMP(dat,k=k,fit=TRUE,itemtype=itemtype,priors=priors,
                              #startimat=startimat,pvar=pvar,taumean=taumean,
                              startimat=startimat,
                              qpoints=qpoints,qwidth=qwidth,se=se,...)
