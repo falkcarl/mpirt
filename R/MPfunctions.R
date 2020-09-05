@@ -80,6 +80,7 @@ fitMP<-function(dat,k=rep(0,ncol(dat)),fit=TRUE,itemtype=NULL,ncat=NULL,
                            qpoints=101,qwidth=5,
                            se=FALSE,infotype="oakes1999",semMethod=NULL,...){
 
+  # Process some input regarding priors
   pmalpha<-alphamean # prior mean for alpha
   pmtau<-taumean # prior mean for tau
   if(is.null(pvartau)){
@@ -101,7 +102,6 @@ fitMP<-function(dat,k=rep(0,ncol(dat)),fit=TRUE,itemtype=NULL,ncat=NULL,
   # Set up type of item
   if(is.null(itemtype)){
     itemtype<-vector("character")
-
     for(j in 1:ni){
       if(ncat[j]>2){
         itemtype<-c(itemtype,"grmp")
@@ -111,7 +111,6 @@ fitMP<-function(dat,k=rep(0,ncol(dat)),fit=TRUE,itemtype=NULL,ncat=NULL,
     }
   }
 
-  #npmax<-2 + 2*max(k) # max number of parameters per item
   npmax<-max(ncat) + 2*max(k) # max number of parameters per item
   kmax<-max(k)
   datlabs<-colnames(dat)
@@ -122,12 +121,9 @@ fitMP<-function(dat,k=rep(0,ncol(dat)),fit=TRUE,itemtype=NULL,ncat=NULL,
   for(j in 1:ni){
     if(itemtype[j]=="lmp"){
       spec[[j]]<-rpf.lmp(k[j])
-      #spec[[j]]<-rpf.lmp(k=k[j])
     } else if (itemtype[j]=="grmp"){
-      #spec[[j]]<-rpf.grmp(ncat[j],k=k[j])
       spec[[j]]<-rpf.grmp(ncat[j],k[j])
     } else if (itemtype[j]=="gpcmp"){
-      #spec[[j]]<-rpf.gpcmp(ncat[j],k=k[j])
       spec[[j]]<-rpf.gpcmp(ncat[j],k[j])
     }
   }
@@ -138,12 +134,7 @@ fitMP<-function(dat,k=rep(0,ncol(dat)),fit=TRUE,itemtype=NULL,ncat=NULL,
   alphastart<-0
   omegastart<- -.5
   lambdastart<- exp(-.5)
-  #startvals<-c(startvals,rep(c(0,taustart),kmax))
-  #tmp<-lapply(spec, rpf.rparam)
-  #tmp<-lapply(tmp, function(x){names(x)<-NULL; return(x)})
-  #startingValues<-mxSimplify2Array(tmp)
   startingValues <- mxSimplify2Array(lapply(spec, rpf.rparam))
-  #tmp<-simplify2array(lapply(spec, rpf.rparam))
   for(j in 1:ni){
     # polytomous items - intercept
     if(ncat[j]>2){
@@ -170,7 +161,7 @@ fitMP<-function(dat,k=rep(0,ncol(dat)),fit=TRUE,itemtype=NULL,ncat=NULL,
       startvals<-c(lambdastart,xistart,alphataustart)
     }
 
-    # over-write randomly generated values from rpf.rparam
+    # over-write randomly generated values from rpf.rparam and use these instead?
     if(randstart){
       startingValues[which(!is.na(startingValues[,j])),j]<-startvals[which(!is.na(startingValues[,j]))]+ rnorm(length(startvals[!is.na(startingValues[,j])]),0,.5)
     } else {
@@ -191,15 +182,11 @@ fitMP<-function(dat,k=rep(0,ncol(dat)),fit=TRUE,itemtype=NULL,ncat=NULL,
     } else {
       imat$labels[1,datlabs[j]]<-paste('lambda',j,sep="")
     }
-    #imat$labels['omega',datlabs[j]]<-paste('omega',j,sep="")
     for(i in 1:(ncat[j]-1)){
       imat$labels[i+1,datlabs[j]]<-paste(paste0("xi",i,"_"),j,sep="")
-      #imat$labels[paste0("xi",i),datlabs[j]]<-paste(paste0("xi",i,"_"),j,sep="")
     }
     if(k[j]>0){
       for(i in 1:k[j]){
-        #imat$labels[paste("alpha",i,sep=""),datlabs[j]]<-paste(paste("alpha",i,"_",sep=""),j,sep="")
-        #imat$labels[paste("tau",i,sep=""),datlabs[j]]<-paste(paste("tau",j,"_",sep=""),i,sep="")
         imat$labels[ncat[j]+2*(i-1)+1,datlabs[j]]<-paste(paste("alpha",i,"_",sep=""),j,sep="")
         imat$labels[ncat[j]+2*(i-1)+2,datlabs[j]]<-paste(paste("tau",i,"_",sep=""),j,sep="")
       }
@@ -209,7 +196,6 @@ fitMP<-function(dat,k=rep(0,ncol(dat)),fit=TRUE,itemtype=NULL,ncat=NULL,
   # If a starting item parameter matrix is given as input, clobber relevant values in the item parameter matrix
   if(!is.null(startimat)){
     indx<-match(startimat$labels,imat$labels)
-    #match(imat$labels,startimat$labels)
     imat$values[indx[!is.na(indx)]]<-startimat$values[!is.na(indx)]
   }
 
@@ -226,11 +212,8 @@ fitMP<-function(dat,k=rep(0,ncol(dat)),fit=TRUE,itemtype=NULL,ncat=NULL,
                   'scores',
                   mxComputeNewtonRaphson(maxIter=500L,tolerance=1e-9),
                   maxIter=2000L,tolerance=1e-7,
-                  #information="oakes1999",
                   information=infotype, # mr1991 is S-EM
                   infoArgs=list(fitfunction='fitfunction',semMethod=semMethod)),
-      #maxIter=2000L,tolerance=1e-7,verbose=2L)
-      #mxComputeOnce (from = 'fitfunction', what= 'information', how= 'meat'),
       mxComputeReportDeriv(),
       mxComputeStandardError()
     )) }else {
@@ -240,13 +223,8 @@ fitMP<-function(dat,k=rep(0,ncol(dat)),fit=TRUE,itemtype=NULL,ncat=NULL,
                     mxComputeNewtonRaphson(maxIter=500L,tolerance=1e-9),
                     maxIter=2000L,tolerance=1e-7)))
   }
-  #In combo with "mr1991", a particular method for S-EM may be specified using semMethod
-  #"mr" = as applied by Cai (2008) to IFA models
-  #"tian" = as specified by Tian, Cai, Thissen, & Xin (2013)
-  #"agile" = Joshua's method for S-EM
 
-
-  # If the largets k is greater than 0, set up (optional) priors and then set up the mxModel
+  # If the largest k is greater than 0, set up (optional) priors and then set up the mxModel
   # Note that some estimation options are hard-coded. These seem to work well, though I suppose
   # some options could be passed along as arguments.
   if(kmax>0 & priors){
@@ -274,11 +252,13 @@ fitMP<-function(dat,k=rep(0,ncol(dat)),fit=TRUE,itemtype=NULL,ncat=NULL,
     Model <- mxModel(model="Model", itemModel, priorAlphaModel, priorTauModel,
                      fitfunc,computeSeq)
   } else {
+    # otherwise set up model w/o priors
     fitfunc<-mxFitFunctionMultigroup(groups=c('itemModel.fitfunction'))
     Model <- mxModel(model="Model", itemModel,
                      fitfunc,computeSeq)
   }
 
+  # fit model?
   if(fit){
     Model<-mxRun(Model)
   }
