@@ -42,8 +42,6 @@ compute.neighbor<-function(x,items=1,step=NULL){
     } else {
       newk<-newk
     }
-    #print(paste0("k =",k))
-    #print(paste0("newk =",newk))
     x[,indx]<-0
     x[newk,indx]<-1
   }
@@ -66,7 +64,6 @@ compute.neighbor<-function(x,items=1,step=NULL){
 # Returned value of AIC or BIC also as item parameter matrix "imat" as an attribute
 energy<-function(dat,k.mat, type="aic", itemtype=NULL, priors=TRUE,startimat=NULL,
                  qpoints=101,qwidth=5,...){
-                #pvar=1000,taumean=-10,qpoints=101,qwidth=5){
   N<-nrow(dat)
   k<-vector("numeric")
   for(j in 1:ncol(k.mat)){
@@ -78,7 +75,6 @@ energy<-function(dat,k.mat, type="aic", itemtype=NULL, priors=TRUE,startimat=NUL
     se<-FALSE
   }
   fitmodel<-fitMP(dat,k=k,fit=TRUE,itemtype=itemtype,priors=priors,
-                             #startimat=startimat,pvar=pvar,taumean=taumean,
                              startimat=startimat,
                              qpoints=qpoints,qwidth=qwidth,se=se,...)
 
@@ -86,14 +82,6 @@ energy<-function(dat,k.mat, type="aic", itemtype=NULL, priors=TRUE,startimat=NUL
 
   en<-getIC(fitmodel,type,N)
 
-  #if(aic){
-    #en<-2*length(fitmodel$output$estimate) + fitmodel$output$algebras$itemModel.fitfunction
-  #  en<-2*length(fitmodel$output$estimate) + fitfunc
-  #} else {
-    # Try BIC?
-    #en<-log(N)*length(fitmodel$output$estimate) + fitmodel$output$algebras$itemModel.fitfunction
-  #  en<-log(N)*length(fitmodel$output$estimate) + fitfunc
-  #}
   attr(en,"imat")<-fitmodel$itemModel@matrices$item
   attr(en,"mod")<-fitmodel
   return(en)
@@ -109,43 +97,43 @@ transition.prob<-function(e,eprime,temp,random=FALSE){
   return(tprob)
 }
 
-#' To extract an information criterion from a fitted model
-#' @param fitmodel blah
-#' @param type blah
-#' @param N blah
-#' @param usefitfunc blah
-#' @param infotype blah
+#' To extract an information criterion or other info from a fitted model
+#' @param x Fitted \code{mxModel}, e.g., from \code{\link{fitMP}}.
+#' @param type String indicating information criterion to extract. See details.
+#' @param N Sample size (used in BIC computations). Could be auto-detected, but not done yet.
+#' @param usefitfunc Logical value. Toggles how to obtain fit function (log-likelihood). At some point how these are stored may have changed.
+#' @param infotype If \code{type} is set to \code{"sic"}, this determines how the information matrix is computed, if not already available from the fitted model.
+#'   May require model re-fitting.
+#' @details Use of Bayesian priors for MP models sometimes complicates computation of some information criterion as typically done by some popular software packages,
+#'   and as done by Mislevy (1986). Typically computation of AIC, BIC, and the log-likelihood is done by plugging in parameter estimates (e.g., based on the posterior mode)
+#'   into the equation for the marginal log-likelihood, instead of computing the value of the log-posterior. As the latter is typically done by OpenMx, the former is
+#'   done by this function.
+#'
+#'   Say something about the type options here.
+#'
+#' @references Mislevy, R.J. (1986) Bayes modal estimation in item response models. Psychometrika 51, 177–195. \url{https://doi.org/10.1007/BF02293979}
 #' @export
-getIC<-function(fitmodel,type="aic",N,usefitfunc=FALSE,
+getIC<-function(x,type=c("aic","bic","sic","ll","np"),N,usefitfunc=FALSE,
                 infotype="oakes1999"){
-  fitfunc<-fitmodel$output$fit-fitmodel$output$algebras$Model.fitfunction
+
+  type <- match.arg(type)
+
+  fitfunc<-x$output$fit-x$output$algebras$Model.fitfunction
   if(type=="aic"){
-    IC<-2*length(fitmodel$output$estimate) + fitmodel$output$algebras$itemModel.fitfunction
+    IC<-2*length(x$output$estimate) + x$output$algebras$itemModel.fitfunction
     if(usefitfunc){
-      IC<-2*length(fitmodel$output$estimate) + fitfunc
+      IC<-2*length(x$output$estimate) + fitfunc
     }
   } else if (type=="bic"){
     # Try BIC?
-    IC<-log(N)*length(fitmodel$output$estimate) + fitmodel$output$algebras$itemModel.fitfunction
+    IC<-log(N)*length(x$output$estimate) + x$output$algebras$itemModel.fitfunction
     if(usefitfunc){
-      IC<-log(N)*length(fitmodel$output$estimate) + fitfunc
+      IC<-log(N)*length(x$output$estimate) + fitfunc
     }
   } else if (type=="sic"){
     # SIC requires information matrix
-    #browser()
-    #IC<- fitfunc + log(det(fitmodel$output$hessian/2)) # implicitly multiplying by 2 already (b/c 1/2 times the thing on the right)
-    #log(det(N*fitmodel$output$hessian/2)) # would result in larger penalty term, but does it matter?
-    #IC<- fitfunc + log(det(N*fitmodel$output$hessian/2)) # or do we need to solve?
-    #IC<- fitfunc + log(det(N*solve(fitmodel$output$hessian/2/N)))
-    #browser()
-    #log(det(N*solve(solve(fitmodel$output$hessian/2/N))))
-    #IC<- fitfunc + log(det(fitmodel$output$hessian/2)) # looks correct? not as severe as BIC, but... what do we get for fit?
-    #IC<- fitfunc + log(det(fitmodel$output$hessian/2*N))
-    #penalty<-try(log(det(N*solve(solve(fitmodel$output$hessian/2/N)))))
-    #print(penalty)
-
     # what if standard errors not available?
-    if(is.null(fitmodel$output$hessian)){
+    if(is.null(x$output$hessian)){
       newcompute<-computeSeq<-mxComputeSequence(list(
         mxComputeEM('itemModel.expectation',
                     'scores',
@@ -155,32 +143,25 @@ getIC<-function(fitmodel,type="aic",N,usefitfunc=FALSE,
                     infoArgs=list(fitfunction='fitfunction')),
         mxComputeReportDeriv(),
         mxComputeStandardError()))
-      fitmodel$compute<-newcompute
-      fitmodel<-mxRun(fitmodel)
-      fitfunc<-fitmodel$output$fit-fitmodel$output$algebras$Model.fitfunction
+      x$compute<-newcompute
+      x<-mxRun(x)
+      fitfunc<-x$output$fit-x$output$algebras$Model.fitfunction
     }
 
-    penalty<-try(log(det(fitmodel$output$hessian/2)))
-    #print(penalty)
-    #browser()
+    penalty<-try(log(det(x$output$hessian/2)))
     IC<-fitfunc + penalty
     if(is.nan(IC)){
       IC<-.Machine$double.xmax
     }
-    #IC<- fitfunc + log(det(N*))
   } else if (type=="ll"){
     if(usefitfunc){
       IC<- fitfunc
     } else {
-      IC<-fitmodel$output$algebras$itemModel.fitfunction
+      IC<-x$output$algebras$itemModel.fitfunction
     }
   } else if (type=="np"){
-    IC<-length(fitmodel$output$estimate)
+    IC<-length(x$output$estimate)
   }
-  #print(2*length(fitmodel$output$estimate))
-  #print(log(N)*length(fitmodel$output$estimate))
-  #print(log(det(N*solve(solve(fitmodel$output$hessian/2/N)))))
-  #print(IC)
   return(IC)
 }
 
@@ -212,8 +193,6 @@ sim.anneal<-function(dat,k.mat,itermax=1000,inittemp=10,type="aic",
                      temptype="straight",...){
 
   # compute "energy" for first state
-  #e<-energy(dat,k.mat,type=type,itemtype=itemtype,priors=priors,pvar=pvar,startimat=startimat,taumean=taumean,
-  #          qpoints=qpoints,qwidth=qwidth)
   e<-energy(dat,k.mat,type=type,itemtype=itemtype,priors=priors,pvar=pvar,startimat=startimat,taumean=taumean,
             qpoints=qpoints,qwidth=qwidth,...)
 
@@ -225,15 +204,12 @@ sim.anneal<-function(dat,k.mat,itermax=1000,inittemp=10,type="aic",
   for(i in 1:itermax){
     # compute "temperature"
     temp<-newtemp(inittemp, itermax, i, type=temptype)
-    #temp<-inittemp*((itermax-i)/itermax)
 
     # compute neighbor
     k.mat.neighbor<-compute.neighbor(k.mat, items=items, step=step)
 
     # obtain "energy" of candidate
     startimat<-attr(e,"imat")
-    #eprime<-energy(dat,k.mat.neighbor,type=type,itemtype=itemtype,priors=priors,pvar=pvar,startimat=startimat,taumean=taumean,
-    #               qpoints=qpoints,qwidth=qwidth)
     eprime<-energy(dat,k.mat.neighbor,type=type,itemtype=itemtype,priors=priors,pvar=pvar,startimat=startimat,taumean=taumean,
                    qpoints=qpoints,qwidth=qwidth,...)
 
@@ -301,8 +277,7 @@ stepwise<-function(dat,kmax,type="aic",itemtype=NULL,priors=TRUE,randstart=FALSE
   k.mat<-matrix(0,nrow=kmax+1,ncol=ni)
   k.mat[1,]<-1 # initialize at k=0 for all items
 
-  # compute AIC for first state
-  #e<-energy(dat,k.mat,type=type,itemtype=itemtype,randstart=randstart,startimat=startimat,pvar=pvar,taumean=taumean)
+  # compute energy for first state
   e<-energy(dat,k.mat,type=type,itemtype=itemtype,randstart=randstart,startimat=startimat,pvar=pvar,taumean=taumean,...)
   startimat<-attr(e,"imat")
   beste<-e
@@ -338,10 +313,9 @@ stepwise<-function(dat,kmax,type="aic",itemtype=NULL,priors=TRUE,randstart=FALSE
     # If one has better AIC than current, it's the new state
     if(length(aic.tmp)>0){
       best.indx<-which.min(aic.tmp)
-      # Is the best AIC better than the current?
+      # Is the best criterion better than the current?
       if(aic.tmp[best.indx]<beste){
         beste<-aic.tmp[best.indx]
-        #startimat<-attr(beste,"imat")
         startimat<-imat.tmp[[best.indx]]
         attr(beste,"imat")<-startimat
         bestk<-k.tmp[[best.indx]]

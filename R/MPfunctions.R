@@ -274,7 +274,7 @@ fitMP<-function(dat,k=rep(0,ncol(dat)),fit=TRUE,itemtype=NULL,ncat=NULL,
 
 #' Extracts useful information about a single item from a fitted MP model and returns all of these values in a list
 #'
-#' @param x Fitted model
+#' @param x Fitted \code{mxModel}, e.g., from \code{\link{fitMP}}.
 #' @param j Item index
 #' @param mp Whether the item in question is an MP model (otherwise, don't compute k)
 #' @examples
