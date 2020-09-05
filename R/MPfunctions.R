@@ -448,10 +448,11 @@ plotInfoMx<-function(x,j,th=seq(-5,5,.1),...){
   plot(th,info,type="l",...)
 }
 
-# Function to create matrix that represents "k" for each item
-# kstart - starting value for k for all items
-# kmax - maximum k
-# ni - number of items
+#' Function to create matrix that represents "k" for each item
+#' @param kstart - starting value for k for all items
+#' @param kmax - maximum k
+#' @param ni - number of items
+#' @export
 newkmat<-function(kstart,kmax,ni){
   k.mat<-matrix(0,nrow=kmax+1,ncol=ni)
   k.mat[kstart+1,]<-1
