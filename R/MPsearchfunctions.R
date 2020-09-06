@@ -22,7 +22,7 @@
 # items - the most number of items to change at a time. e.g., 2 -> 1-2 items can be changed
 # step - selects the most amount of change in k allowed (e.g., step 1 -> k=0 to k=1 allowed, but not k=0 to k=2)
 #   Really only step=1 is probably reasonable. Larger steps might yield estimation problems.
-compute.neighbor<-function(x,items=1,step=NULL){
+computeNeighbor<-function(x,items=1,step=NULL){
   kmax<-nrow(x)-1 # detect max k allowed based on input matrix
   ni<-ncol(x) # detect
   items<-sample(1:items,1) # how many items to change
@@ -175,27 +175,24 @@ getIC<-function(x,type=c("aic","bic","sic","ll","np"),N,usefitfunc=FALSE,
 #' @param inittemp Staring temperature for SA algorithm.
 #' @param type Which information criterion to use as the objective function to minimize. Anything supported by \code{\link{getIC}} is currently possible.
 #' @param random Logical value indicating whether to just automatically accept neighboring models (meaning not actually do SA).
-#' @param priors Logical value indicating whether to use prior distributions on alpha and tau parameters.
-#' @param startimat Sarting item parameter matrix, if any. Used only for the first iteration.
-#' @param step Allowed change in k for candidate models (see documentation for compute.neighbor function)
-#' @param items Number of items for perturbing k (see documentation for compute.neighbor function)
-#' @param pvar - prior variance
-#' @param taumean - mean of prior distribution for tau parameters; currently all parameters will have the same prior mean
-#' @param itemtype - character vector that has length same as number of items; indicates what type of model to use for each item
-#' @param qpoints - number of quadrature points
-#' @param qwidth - width for quadrature grid
-#' @param temptype - method for temperature schedule decreases (see newtemp function)
+#' @param startimat Starting item parameter matrix, if any. Used only for the first iteration.
+#' @param step Maximum allowed change in k for candidate models. e.g., step 1 -> k=0 to k=1 allowed, but not k=0 to k=2. Smaller steps less likely to have estimation problems.
+#' @param items How many items' k should be perturbed for computing a neighboring model?
+#' @param temptype Method for temperature schedule decreases (see \code{\link{newTemp}} function).
 #' @param ... Additional arguments to be passed to \code{\link{fitMP}}.
+#' @details This function performs simulated annealing to select polynomial order.
+#' @return A list with the following elements
+#' @slot blah1
+#' @slot blah2
+#' @slot blah3
 #' @importFrom stats runif
 #' @export
-sim.anneal<-function(dat,k.mat,itermax=1000,inittemp=10,type="aic",
-                     random=FALSE,priors=TRUE,startimat=NULL,step=1,items=1,pvar=1000,taumean=-10,
-                     itemtype=NULL,qpoints=101,qwidth=5,
+simAnneal<-function(dat,k.mat,itermax=1000,inittemp=10,type="aic",
+                     random=FALSE,startimat=NULL,step=1,items=1,
                      temptype="straight",...){
 
   # compute "energy" for first state
-  e<-energy(dat,k.mat,type=type,itemtype=itemtype,priors=priors,pvar=pvar,startimat=startimat,taumean=taumean,
-            qpoints=qpoints,qwidth=qwidth,...)
+  e<-energy(dat,k.mat,type=type,startimat=startimat,...)
 
   beste<-c(e)
   bestk<-k.mat
@@ -204,15 +201,14 @@ sim.anneal<-function(dat,k.mat,itermax=1000,inittemp=10,type="aic",
 
   for(i in 1:itermax){
     # compute "temperature"
-    temp<-newtemp(inittemp, itermax, i, type=temptype)
+    temp<-newTemp(inittemp, itermax, i, type=temptype)
 
     # compute neighbor
-    k.mat.neighbor<-compute.neighbor(k.mat, items=items, step=step)
+    k.mat.neighbor<-computeNeighbor(k.mat, items=items, step=step)
 
     # obtain "energy" of candidate
     startimat<-attr(e,"imat")
-    eprime<-energy(dat,k.mat.neighbor,type=type,itemtype=itemtype,priors=priors,pvar=pvar,startimat=startimat,taumean=taumean,
-                   qpoints=qpoints,qwidth=qwidth,...)
+    eprime<-energy(dat,k.mat.neighbor,type=type,startimat=startimat,...)
 
     # compute transition probability
     tprob<-transition.prob(e,eprime,temp,random)
@@ -241,20 +237,21 @@ sim.anneal<-function(dat,k.mat,itermax=1000,inittemp=10,type="aic",
   return(ret)
 }
 
-# Computes algorithm "temperature" based on initial temperature, max number of iterations, current iteration, and last temperature
-#
-# inittemp - initial temperature (e.g., 5)
-# itermax - maximum number of iterations
-# i - current iteration
-# lasttemp - last temperature (i.e., when i == itermax )
-# type - type of temperature schedule
-#   "straight" - used in initial simulations for IMPS paper
+#' Computes algorithm "temperature" based on initial temperature, max number of iterations, current iteration, and last temperature
+#'
+#' @param inittemp Initial temperature.
+#' @param itermax Maximum number of iterations.
+#' @param i Current iteration
+#' @param lasttemp Last temperature (i.e., when i == itermax )
+#' @param type Type of temperature schedule
+#   "straight" - used in initial simulations for IMPS paper (Falk, 2019)
 #   "straight2" - used by Stander & Silverman (1994)
 #   "logarithmic" - best performing logarithmic schedule by Stander & Silverman (1994)
 #     oops, lasttemp can't be 0 if logarithmic schedule is used.
-newtemp<-function(inittemp, itermax, i, lasttemp=.00001, type="straight"){
+newTemp<-function(inittemp, itermax, i, lasttemp=.00001, type=c("straight","straight2","logarithmic")){
+  type <- match.arg(type)
   if(type=="straight"){
-    # what I used
+    # Used for IMPS paper
     temp<-inittemp*((itermax-i)/itermax)
   } else if (type=="straight2"){
     # Stander & Silverman, 1994
