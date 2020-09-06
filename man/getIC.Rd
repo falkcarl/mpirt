@@ -2,21 +2,40 @@
 % Please edit documentation in R/MPsearchfunctions.R
 \name{getIC}
 \alias{getIC}
-\title{To extract an information criterion from a fitted model}
+\title{Extract information criterion or other info from a fitted model}
 \usage{
-getIC(fitmodel, type = "aic", N, usefitfunc = FALSE, infotype = "oakes1999")
+getIC(
+  x,
+  type = c("aic", "bic", "sic", "ll", "np"),
+  N,
+  usefitfunc = FALSE,
+  infotype = "oakes1999"
+)
 }
 \arguments{
-\item{fitmodel}{blah}
+\item{x}{Fitted \code{mxModel}, e.g., from \code{\link{fitMP}}.}
 
-\item{type}{blah}
+\item{type}{String indicating information criterion to extract. See details.}
 
-\item{N}{blah}
+\item{N}{Sample size (used in BIC computations). Could be auto-detected, but not done yet.}
 
-\item{usefitfunc}{blah}
+\item{usefitfunc}{Logical value. Toggles how to obtain fit function (log-likelihood). At some point how these are stored may have changed.}
 
-\item{infotype}{blah}
+\item{infotype}{If \code{type} is set to \code{"sic"}, this determines how the information matrix is computed, if not already available from the fitted model.
+May require model re-fitting.}
 }
 \description{
-To extract an information criterion from a fitted model
+Extract information criterion or other info from a fitted model
+}
+\details{
+Use of Bayesian priors for MP models sometimes complicates computation of some information criterion as typically done by some popular software packages,
+  and as done by Mislevy (1986). Typically computation of AIC, BIC, and the log-likelihood is done by plugging in parameter estimates (e.g., based on the posterior mode)
+  into the equation for the marginal log-likelihood, instead of computing the value of the log-posterior. As the latter is typically done by OpenMx, the former is
+  done by this function.
+
+  Currently supported are AIC ("aic"), BIC ("bic"), log-likelihood ("ll"), number of parameters ("np"),
+  and stochastic information criterion ("sic").
+}
+\references{
+Mislevy, R.J. (1986) Bayes modal estimation in item response models. Psychometrika 51, 177–195. \url{https://doi.org/10.1007/BF02293979}
 }

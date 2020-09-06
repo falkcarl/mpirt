@@ -7,7 +7,7 @@
 extractItem(x, j, mp = TRUE)
 }
 \arguments{
-\item{x}{Fitted model}
+\item{x}{Fitted \code{mxModel}, e.g., from \code{\link{fitMP}}.}
 
 \item{j}{Item index}
 
