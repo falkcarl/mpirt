@@ -79,14 +79,15 @@ dEAP<-function(mod1,mod2,j1,j2,cats){
   catmat<-as.data.frame(matrix(cats,length(cats),1, byrow=TRUE))
   catmat<-mxFactor(catmat,levels=0:length(cats))
   colnames(catmat)<-colnames(mod1$itemModel$item$values[,j1,drop=FALSE])
-  EAP1<-EAPscoresMx(mod1,j1,catmat)
-  EAP2<-EAPscoresMx(mod2,j2,catmat)
+  EAP1<-EAPscoresMP(mod1,j1,catmat)
+  EAP2<-EAPscoresMP(mod2,j2,catmat)
 
   EAP1[,1]-EAP2[,1] # in Edelen et al; In Hansen et al, these are further weighted by observed probabilities of response to each category
 }
 
 # only RIMSE or RIMSD is usually scaled so that the resulting value is on a metric between 0 and 1
 # Otherwise, wABC and sDTF are dependent on the number of score categories, but Chalmers mentions an effect size that's scaled
+#' @importFrom stats dnorm
 tracedifmod<-function(mod1,mod2,j1,j2,
                   method=c("RIMSD","ISD","IAD"),scale=TRUE,scaletest=TRUE,
                   theta=seq(-5,5,.1),w=dnorm(theta)/sum(dnorm(theta))){
@@ -96,8 +97,8 @@ tracedifmod<-function(mod1,mod2,j1,j2,
 
   ni<-length(j1)
 
-  ES1<-TCCMx(mod1,j1,theta,scale,scaletest)
-  ES2<-TCCMx(mod2,j2,theta,scale,scaletest)
+  ES1<-TCC(mod1,j1,theta,scale,scaletest)
+  ES2<-TCC(mod2,j2,theta,scale,scaletest)
 
   if(method=="RIMSD"){
     out<-RIMSD(ES1,ES2,w)
@@ -109,6 +110,7 @@ tracedifmod<-function(mod1,mod2,j1,j2,
   out
 }
 
+#' @importFrom stats dnorm
 infodif<-function(mod1,mod2,j1,j2,
                     method=c("RIMSD","IAD","ISD"),
                     theta=seq(-5,5,.1),w=dnorm(theta)/sum(dnorm(theta))){
@@ -116,8 +118,8 @@ infodif<-function(mod1,mod2,j1,j2,
   method<-match.arg(method)
   ni<-length(j1)
 
-  EIF1<-TIFMx(mod1,j1,theta)
-  EIF2<-TIFMx(mod2,j2,theta)
+  EIF1<-TIF(mod1,j1,theta)
+  EIF2<-TIF(mod2,j2,theta)
 
   if(method=="RIMSD"){
     out<-RIMSD(EIF1,EIF2,w)
@@ -129,6 +131,7 @@ infodif<-function(mod1,mod2,j1,j2,
   out
 }
 
+#' @importFrom rpf rpf.prob
 bolt2002.nll<- function(x,grm.item,true.item,trupars,theta,w){
 
   P<-rpf.prob(grm.item,x,theta)
@@ -142,6 +145,7 @@ bolt2002.nll<- function(x,grm.item,true.item,trupars,theta,w){
 
 }
 
+#' @importFrom stats nlminb
 bolt2002 <- function(item,npitem,startvals,nppars,theta,w,...){
   w<-w/sum(w)
   est<-nlminb(startvals, bolt2002.nll,
@@ -155,6 +159,8 @@ bolt2002 <- function(item,npitem,startvals,nppars,theta,w,...){
 }
 
 # only designed for GRM at the moment
+#' @importFrom stats dnorm
+#' @importFrom rpf rpf.grm
 bolt2002.model <- function(x, items, theta=seq(-4,4,length.out=500), w=dnorm(theta)/sum(dnorm(theta)),...){
 
   pars<-list()
@@ -164,7 +170,7 @@ bolt2002.model <- function(x, items, theta=seq(-4,4,length.out=500), w=dnorm(the
   mp.pars<-list()
   for(j in 1:length(items)){
 
-    mp.i<-extractItemMx(x,items[j])
+    mp.i<-extractItem(x,items[j])
     mp.par<-mp.i$pars
     mp.item<-mp.i$spec
     ncat<-mp.item$spec[2]
@@ -187,7 +193,7 @@ bolt2002.model <- function(x, items, theta=seq(-4,4,length.out=500), w=dnorm(the
 tracedifitem<-function(item1,item2,par1,par2,
                   method=c("RIMSD","ISD","IAD"),scale=TRUE,
                   theta=seq(-5,5,.1),
-                  w=dnorm(theta)){
+                  w=dnorm(theta)/sum(dnorm(theta))){
 
   method<- match.arg(method)
 
