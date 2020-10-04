@@ -16,7 +16,15 @@
 
 # RIMSD, RIMSE, and effect size measures to examine discrepancies among response functions
 
-# Root integrated mean square error (or difference)
+#' Root Integrated Mean Square Difference
+#'
+#' @param T1 Vector of values corresponding to traceline or information function 1.
+#' @param T2 Vector of values corresponding to traceline or information function 2.
+#' @param w Vector of weights; usually these should sum to 1.
+#' @details Computes root integrated mean square difference (RIMSD) between \code{T1} and \code{T2}, with weights for integration
+#' from \code{w}. The difference is squared, a weighted sum is computed based on \code{w} and then the square root is taken.
+#'
+#' @export
 RIMSD<-function(T1,T2,w){
   #out<-sqrt(sum((T1-T2)^2*w)/sum(w))
   #w<-w/sum(w)
@@ -24,7 +32,15 @@ RIMSD<-function(T1,T2,w){
   out
 }
 
-# integrated absolute difference
+#' Integrated Absolute Difference
+#'
+#' @param T1 Vector of values corresponding to traceline or information function 1.
+#' @param T2 Vector of values corresponding to traceline or information function 2.
+#' @param w Vector of weights; usually these should sum to 1.
+#' @details Computes integrated absolute difference (IAD) between \code{T1} and \code{T2}, with weights for integration
+#' from \code{w}. Note, this function is essentially the same as AAD from Bolt (2002), wABC from Edelen, Stuck, and Chandra (2015), and uDTF from Chalmers, Counsell, and Flora (2016).
+#'
+#' @export
 IAD<- function(T1,T2,w){
   wABC(T1,T2,w)
 }
@@ -37,6 +53,15 @@ wABC<-function(T1,T2,w){
   out
 }
 
+#' Integrated Signed Difference
+#'
+#' @param T1 Vector of values corresponding to traceline or information function 1.
+#' @param T2 Vector of values corresponding to traceline or information function 2.
+#' @param w Vector of weights; usually these should sum to 1.
+#' @details Computes integrated signed difference (ISD) between \code{T1} and \code{T2}, with weights for integration
+#' from \code{w}. Note, this function is essentially the same as sDTF from Chalmers, Counsell, and Flora (2016).
+#'
+#' @export
 # integrated signed difference
 ISD<-function(T1,T2,w){
   sDTF(T1,T2,w)
