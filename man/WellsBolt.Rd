@@ -110,9 +110,9 @@ samod <- safit$bestmod # best model according to SA
 
 getkrec(samod, 4) # value of k for each item from best model
 
-# Estimation settings similar to SA, but fewer iterations so as not to be too computationally difficult
+# Estimation settings similar to SA, but fewer iterations
 # If generating under the graded model, fewer iterations should be necessary anyway
-# 100 replications also probably not enough to get very accurate p-values; but for illustration
+# 100 replications also probably not enough to get very accurate p-values
 WB <- WellsBolt(samod, dat, nrep=100, kmax=2, seq(-4,4,length.out=81),
                parallel="furrr", ncores=2,
                itermax = 12,
