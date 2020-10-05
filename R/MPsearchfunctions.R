@@ -196,8 +196,35 @@ getIC<-function(x,type=c("aic","bic","sic","ll","np"),N,usefitfunc=FALSE,
 #' @slot k.mat A matrix of the same type as its input that encodes the polynomial order for each item.
 #' @slot beste A recording of the best objective function encountered from the best fitting model.
 #' @slot bestk A vector encoding the values of k for the best model.
-#' @slot bestmod The best fitted \code{mxModel}.
+#' @slot bestmod The best fitted \code{mxModel}. This is what may be most useful to pass to other functions or to
+#'   extract information from as it is a fitted MP model.
 #' @slot bestimat The item parameter matrix from the best fitted model (useful if one wants to do more iterations or re-fit the same model).
+#'
+#' @examples
+#' \donttest{
+#'
+#' # For now, just load something from mirt
+#' library(mirt)
+#' data(Science)
+#'
+#' dat <- mxFactor(Science,levels=1:4)
+#' safit <- simAnneal(dat, k.mat=newkmat(0,2,4),
+#'                    itermax = 4*6,
+#'                    inittemp = 5,
+#'                    type = "aic",
+#'                    step = 1,
+#'                    items = 1,
+#'                    temptype = "logarithmic",
+#'                    itemtype=rep("grmp",4))
+#'
+#'
+#' samod <- safit$bestmod
+#'
+#' getIC(samod, "aic") # extract AIC from best model
+#' getkrec(samod, 4) # value of k for each item from best model
+#'
+#' }
+#'
 #'
 #' @importFrom stats runif
 #' @export

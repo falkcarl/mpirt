@@ -12,5 +12,7 @@ LazyData: true
 Depends:
   OpenMx,
   rpf,
-  ifaTools
-RoxygenNote: 7.1.0
+  ifaTools,
+  furrr,
+  future
+RoxygenNote: 7.1.1

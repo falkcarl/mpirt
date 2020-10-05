@@ -43,7 +43,8 @@
 #' @param infotype String passed as \code{information} argument to \code{\link[OpenMx]{mxComputeEM}} to determine how to compute information matrix (for standard errors).
 #' @param semMethod If "mr1991" is chosen for \code{infotype}, then supplemented EM is used. This argument then takes a string that determines
 #'  which variant of S-EM is performed. e.g., "mr" = as applied by Cai (2008) to IFA models, "tian" = as specified by Tian, Cai, Thissen, & Xin (2013), "agile" = Joshua Pritikin's method for S-EM.
-#' @param ... Not used yet, but some arguments may later be passed directly to some OpenMx functions.
+#' @param ... Not used yet, but some arguments may later be passed directly to some OpenMx functions. This is now
+#'  kind of like a black hole that may help \code{\link{WellsBolt}} code to work.
 #' @details Setting up monotonic polynomial models in OpenMx can be a bit of a pain. This wrapper function
 #'  attempts to make it easier. In a single line, it will set up and estimate a single group, unidimensional item response model with three choices
 #'  for item models. Note that the models for each item are extensions of the two-parameter logistic, generalized partial credit, and graded response models.
@@ -65,7 +66,22 @@
 #' Measurement, 44}, 465-481. \url{https://doi.org/10.1177/0146621620909897}
 #' @examples
 #' \donttest{
-#' # TODO examples here
+#'
+#' # For now, just load something from mirt
+#' library(mirt)
+#' data(Science)
+#'
+#' dat <- mxFactor(Science,levels=1:4)
+#'
+#' grmfit <- fitMP(dat, k=rep(0,4), itemtype=rep("grmp",4))
+#'
+#' k1fit <- fitMP(dat, k=rep(1,4), itemtype=rep("grmp",4),
+#'                startimat = grmfit$itemModel@matrices$item)
+#'
+#' getIC(grmfit, "aic")
+#' getIC(k1fit, "aic")
+#'
+#'
 #' }
 #' @return Returns an object of class \code{\link[OpenMx]{MxModel-class}}. Convenience functions for extracting more from this object are available.
 #' @seealso Anything else?

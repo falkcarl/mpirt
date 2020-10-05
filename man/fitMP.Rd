@@ -72,7 +72,8 @@ To see an example of what such a matrix looks like, fit a model with this functi
 \item{semMethod}{If "mr1991" is chosen for \code{infotype}, then supplemented EM is used. This argument then takes a string that determines
 which variant of S-EM is performed. e.g., "mr" = as applied by Cai (2008) to IFA models, "tian" = as specified by Tian, Cai, Thissen, & Xin (2013), "agile" = Joshua Pritikin's method for S-EM.}
 
-\item{...}{Not used yet, but some arguments may later be passed directly to some OpenMx functions.}
+\item{...}{Not used yet, but some arguments may later be passed directly to some OpenMx functions. This is now
+kind of like a black hole that may help \code{\link{WellsBolt}} code to work.}
 }
 \value{
 Returns an object of class \code{\link[OpenMx]{MxModel-class}}. Convenience functions for extracting more from this object are available.
@@ -95,7 +96,22 @@ Setting up monotonic polynomial models in OpenMx can be a bit of a pain. This wr
 }
 \examples{
 \donttest{
-# TODO examples here
+
+# For now, just load something from mirt
+library(mirt)
+data(Science)
+
+dat <- mxFactor(Science,levels=1:4)
+
+grmfit <- fitMP(dat, k=rep(0,4), itemtype=rep("grmp",4))
+
+k1fit <- fitMP(dat, k=rep(1,4), itemtype=rep("grmp",4),
+               startimat = grmfit$itemModel@matrices$item)
+
+getIC(grmfit, "aic")
+getIC(k1fit, "aic")
+
+
 }
 }
 \references{
