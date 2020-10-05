@@ -98,7 +98,7 @@ Setting up monotonic polynomial models in OpenMx can be a bit of a pain. This wr
 \donttest{
 
 # For now, just load something from mirt
-library(mirt)
+#library(mirt)
 data(Science)
 
 dat <- mxFactor(Science,levels=1:4)

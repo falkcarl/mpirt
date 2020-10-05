@@ -204,7 +204,7 @@ getIC<-function(x,type=c("aic","bic","sic","ll","np"),N,usefitfunc=FALSE,
 #' \donttest{
 #'
 #' # For now, just load something from mirt
-#' library(mirt)
+#' #library(mirt)
 #' data(Science)
 #'
 #' dat <- mxFactor(Science,levels=1:4)

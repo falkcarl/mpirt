@@ -79,7 +79,7 @@ extract information from as it is a fitted MP model.}
 \donttest{
 
 # For now, just load something from mirt
-library(mirt)
+#library(mirt)
 data(Science)
 
 dat <- mxFactor(Science,levels=1:4)

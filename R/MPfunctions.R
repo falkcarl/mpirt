@@ -68,7 +68,7 @@
 #' \donttest{
 #'
 #' # For now, just load something from mirt
-#' library(mirt)
+#' #library(mirt)
 #' data(Science)
 #'
 #' dat <- mxFactor(Science,levels=1:4)

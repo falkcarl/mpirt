@@ -93,7 +93,7 @@ THIS FUNCTION IS EXPERIMENTAL: additional functionality will be added, which may
 \donttest{
 
 # For now, just load something from mirt
-library(mirt)
+#library(mirt)
 data(Science)
 
 dat <- mxFactor(Science,levels=1:4)
@@ -125,6 +125,7 @@ WB <- WellsBolt(samod, dat, nrep=100, kmax=2, seq(-4,4,length.out=81),
 
 WB$dif # observed RMSD values
 WB$pval # p-values
+
 
 }
 

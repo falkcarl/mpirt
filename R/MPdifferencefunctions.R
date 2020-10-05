@@ -356,7 +356,7 @@ bootWellsBolt<-function(i, boltmod, N, ni, mask, kmax=3, theta, w, ...){
 #' \donttest{
 #'
 #' # For now, just load something from mirt
-#' library(mirt)
+#' #library(mirt)
 #' data(Science)
 #'
 #' dat <- mxFactor(Science,levels=1:4)
@@ -393,7 +393,7 @@ bootWellsBolt<-function(i, boltmod, N, ni, mask, kmax=3, theta, w, ...){
 #'
 #' @export
 #' @importFrom stats dnorm ecdf p.adjust
-#' @importFrom future multiprocess plan
+#' @importFrom future multiprocess sequential plan
 #' @importFrom furrr future_map future_options
 WellsBolt<-function(MPmod, dat, nrep=500, kmax=3,
                     theta=seq(-4,4,length.out=500), w=dnorm(theta)/sum(dnorm(theta)),
@@ -422,7 +422,7 @@ WellsBolt<-function(MPmod, dat, nrep=500, kmax=3,
     rmsd.wb.boot<-future_map(1:nrep, bootWellsBolt,
                              boltmod = boltmod, N=N, ni=ni, mask=mask, kmax=kmax, theta=theta, w=w,
                              .progress=TRUE,.options=future_options(seed=seed), ...=...)
-
+    plan(sequential)
   }
 
   rmsd.result<-do.call("rbind",rmsd.wb.boot)
