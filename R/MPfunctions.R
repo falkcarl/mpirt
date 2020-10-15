@@ -389,6 +389,7 @@ infoMP<-function(x,j,theta=seq(-5,5,.1)){
 #' @param theta Grid for theta, the latent trait.
 #' @param scale Logical value. If TRUE, divide each items' expected score curve by the total number of categories so that the expected sore curve is bound between 0 and 1.
 #' @param scaletest Logical value. If TRUE, divide the TCC by the total number of items.
+#' @export
 #' @importFrom rpf rpf.prob
 TCC<-function(x,items,theta=seq(-5,5,.1),scale=FALSE,scaletest=FALSE){
   P<-rep(0,length(theta))
