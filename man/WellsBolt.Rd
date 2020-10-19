@@ -126,7 +126,6 @@ WB <- WellsBolt(samod, dat, nrep=100, kmax=2, seq(-4,4,length.out=81),
 WB$dif # observed RMSD values
 WB$pval # p-values
 
-
 }
 
 }
