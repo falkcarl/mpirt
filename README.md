@@ -27,7 +27,11 @@ Falk, C.F., & Cai, L. (2016). Maximum marginal likelihood estimation of
 a monotonic polynomial generalized partial credit model with applications to
 multiple group analysis. *Psychometrika, 81,* 434-460. http://dx.doi.org/10.1007/s11336-014-9428-7
 
-Pritikin, J. N., Hunter, M. D., & Boker, S. M. (2015). Modular open-source software for Item Factor Analysis. Educational and Psychological Measurement, 75(3), 458–474. https://doi.org/10.1177/0013164414554615
+Feuerstahler,  L.  M. (2016). Exploring alternate latent trait metrics with the filtered monotonic polynomial IRTmodel (Unpublished  doctoral  dissertation). Department of Psychology, University of Minnesota.
+
+Liang, L., & Browne, M. W. (2015).  A quasi-parametric method for fitting flexible item response functions. *Journal of Educational and Behavioral Statistics*, 40, 5-34. https://doi.org/10.3102/1076998614556816
+
+Pritikin, J. N., Hunter, M. D., & Boker, S. M. (2015). Modular open-source software for Item Factor Analysis. *Educational and Psychological Measurement*, 75(3), 458–474. https://doi.org/10.1177/0013164414554615
 
 Pritikin, J.N., & Falk, C.F. (in press). OpenMx: A modular research environment
 for item response theory methods development. *Applied Psychological Measurement*. https://doi.org/10.1177/0146621620929431
