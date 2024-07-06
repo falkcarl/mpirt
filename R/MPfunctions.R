@@ -322,12 +322,12 @@ extractItem<-function(x,j,mp=TRUE){
 #' @export
 getk<-function(x,j){
   # If an mx Model, we can guess k from the number of parameters and categories
-  if(class(x)=="MxModel"){
+  if(inherits(x, "MxModel")){
     pars<-x$itemModel$item$values[,j]
     npar<-length(pars[!is.na(pars)])
     ncat<-sum(!is.na(unique(x$itemModel$data$observed[,j])))
     k<-(npar-ncat)/2
-  } else if (class(x)=="matrix"){
+  } else if (inherits(x,"matrix")){
     # if x is a matrix, determine k based on where there's a "1"
     k<-which(x[,j]==1)-1
   }

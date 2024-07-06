@@ -1,7 +1,7 @@
 Package: mpirt
 Type: Package
 Title: Semi- and non-parametric item response theory
-Version: 0.1.0
+Version: 0.1.1
 Author: Carl F. Falk
 Maintainer: Carl F. Falk <carl.falk@mcgill.ca>
 Description: A collection of wrappers and utility functions for semi-
@@ -9,10 +9,12 @@ Description: A collection of wrappers and utility functions for semi-
 License: GPL-3 + file LICENSE
 Encoding: UTF-8
 LazyData: true
+Imports:
+  parallelly
 Depends:
   OpenMx,
   rpf,
   ifaTools,
   furrr,
   future
-RoxygenNote: 7.1.1
+RoxygenNote: 7.3.1

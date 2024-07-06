@@ -393,8 +393,9 @@ bootWellsBolt<-function(i, boltmod, N, ni, mask, kmax=3, theta, w, ...){
 #'
 #' @export
 #' @importFrom stats dnorm ecdf p.adjust
-#' @importFrom future multiprocess sequential plan
-#' @importFrom furrr future_map future_options
+#' @importFrom future multisession multicore sequential plan
+#' @importFrom furrr future_map furrr_options
+#' @importFrom parallelly supportsMulticore
 WellsBolt<-function(MPmod, dat, nrep=500, kmax=3,
                     theta=seq(-4,4,length.out=500), w=dnorm(theta)/sum(dnorm(theta)),
                     parallel=c("furrr","lapply"),ncores=2,seed=5224L,
@@ -418,10 +419,15 @@ WellsBolt<-function(MPmod, dat, nrep=500, kmax=3,
     stop("lapply not yet tested")
   } else if (parallel=="furrr"){
     #require(furrr)
-    plan(multiprocess, workers = ncores)
+    if(supportsMulticore()){
+      plan(multicore, workers = ncores)
+    } else {
+      plan(multisession, workers = ncores)
+    }
+
     rmsd.wb.boot<-future_map(1:nrep, bootWellsBolt,
                              boltmod = boltmod, N=N, ni=ni, mask=mask, kmax=kmax, theta=theta, w=w,
-                             .progress=TRUE,.options=future_options(seed=seed), ...=...)
+                             .progress=TRUE,.options=furrr_options(seed=seed), ...=...)
     plan(sequential)
   }
 
